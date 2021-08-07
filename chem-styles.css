@@ -1,0 +1,130 @@
+/* Set up basics and nav bar */
+body {
+  background: #1D2951;
+  color: #DBD1B4;
+  padding-top: 20px;
+  font-family: "Open Sans", "Helvetica Neue", Helvetica, Roboto, Arial, sans-serif;
+}
+
+a {
+  color: #DBD1B4;
+}
+
+.milonga {
+  font-family: "Milonga", Georgia, Cambria, "Times New Roman", Times, serif;
+}
+
+.chem-symbol {
+  font-family: "Alchemy", sans-serif;
+}
+
+.nav-tabs {
+  border-bottom: 1px solid #0E1325;
+  font-size: 20px;
+}
+
+.nav-item {
+  background-color: #1D2951;
+}
+
+.nav-tabs .nav-link.active {
+  background: #5F567C;
+  color: white;
+  border-color: #5F567C;
+}
+
+.nav-tabs .nav-link.active:hover {
+  background: #5F567C;
+  color: white;
+  border-color: #5F567C;
+}
+
+.nav-tabs .nav-link:hover {
+  background-color: #293970;
+  border-color: #293970;
+  color: #DBD1B4;
+}
+
+.badge {
+  background: #5F567C;
+  border-color: #5F567C;
+  color: #DBD1B4;
+}
+
+/* Set up inputs and buttons */
+
+.form-control {
+  background-color: #DBD1B4;
+}
+
+.input-group-text {
+  background-color: #c5b587;
+}
+
+.action-button {
+  background: #5F567C;
+  border-color: #5F567C;
+  color: #DBD1B4;
+}
+
+/* Top alerts */
+
+.load-indicator-parent {
+  text-align: center;
+}
+
+.warning-link {
+  color: black;
+}
+
+/* checker tab stuff */
+
+.search-box {
+  padding: 0px;
+}
+
+.checker-tab-header-text {
+  font-size: 18px;
+  text-align: center;
+}
+
+.check-recipes-button {
+  margin-top: 8px;
+}
+
+/* Property tab stuff */
+
+.list-group-item {
+  background-color: #1D2951;
+  border-color: #DBD1B4;
+}
+
+/* Print tab stuff */
+
+.print-button-container {
+  text-align: center;
+}
+
+/* set up modal */
+.modal-content {
+  background-color: #1D2951;
+}
+
+.close {
+  color: #DBD1B4;
+}
+
+.close:hover {
+  color: #DBD1B4;
+}
+
+/* auth stuff purgatory */
+.auth-stuff-wrapper {
+  padding-top: 20px;
+  width: 100%;
+}
+
+.auth-button {
+  display: none;
+  margin: auto;
+}
