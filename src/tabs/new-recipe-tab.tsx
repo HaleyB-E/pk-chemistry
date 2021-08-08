@@ -12,6 +12,9 @@ export interface NewRecipeTabProps {
 export interface NewRecipeTabState {
   selectedProperties: IChemProperty[];
   unselectedProperties: IChemProperty[];
+  currentlyViewableUnselectedProperties: IChemProperty[];
+  recipeCheckResults?: JSX.Element;
+  filterText: string;
 }
 
 export class NewRecipeTab extends Component<NewRecipeTabProps, NewRecipeTabState> {
@@ -22,20 +25,20 @@ export class NewRecipeTab extends Component<NewRecipeTabProps, NewRecipeTabState
     this.handleRecipeCheck = this.handleRecipeCheck.bind(this);
     this.state = {
       selectedProperties: [],
-      unselectedProperties: this.props.propertiesList
+      unselectedProperties: _.cloneDeep(this.props.propertiesList),
+      currentlyViewableUnselectedProperties: _.cloneDeep(this.props.propertiesList),
+      recipeCheckResults: undefined,
+      filterText: ''
     };
   }
 
   private filterSearch(event: ChangeEvent<HTMLInputElement>) {
-    const filterText = event.target.value;
-    $.each($('.unselected-property'), function(index: number, property: any) {
-      if (property.value.includes(filterText)){
-        $(property).show();
-      }
-      else {
-        $(property).hide();
-      }
-    })
+    this.setState({
+      filterText: event.target.value,
+      currentlyViewableUnselectedProperties: _.filter(this.state.unselectedProperties, p => {
+        return p.name.includes(this.state.filterText)
+      })
+    });
   }
 
   private handlePropertyClick(event: SyntheticEvent) {
@@ -53,82 +56,57 @@ export class NewRecipeTab extends Component<NewRecipeTabProps, NewRecipeTabState
       if (this.state.selectedProperties.length === 8) {
         return;
       }
+      const unselected = _.filter(this.state.unselectedProperties, p => p.name !== property.name);
       this.setState({
+        filterText: '',
         selectedProperties: _.concat(this.state.selectedProperties, property),
-        unselectedProperties: _.filter(this.state.unselectedProperties, p => p.name !== property.name)
+        unselectedProperties: unselected,
+        currentlyViewableUnselectedProperties: unselected
       });
     // if previously selected, remove property from selected list
     } else if (clickedButton.className.includes('selected-property')) {
       var unselected = _.concat(this.state.unselectedProperties, property);
       unselected.sort((a,b) => a.name.localeCompare(b.name)) // re-alphabetize
       this.setState({
+        filterText: '',
         selectedProperties: _.filter(this.state.selectedProperties, p => p.name !== property.name),
-        unselectedProperties: unselected
+        unselectedProperties: unselected,
+        currentlyViewableUnselectedProperties: unselected
       });
     } else {
-      console.log('fuck')
+      console.log('something is wrong - button neither selected nor unselected???')
     }
   }
 
   // check if selected properties form an existing recipe - if not, allow new one to be created
   private handleRecipeCheck() {
-    var chosenProperties = this.state.selectedProperties;
-
-  }
-// $(document).on('click', ".check-recipes-button", function(event) {
-//   var chosenProperties = getSelectedProperties();
-//   var resultsSpan = $('.recipe-check-results');
-//   // clear out previous display
-//   resultsSpan.empty();
-//   // display 
-//   var matchedRecipe = checkForRecipeMatch(chosenProperties);
-//   if (matchedRecipe) {
-//       // clear out selected properties
-//       $.each($('.selected-property'), function(i,p) {p.click();});
-//       // show info about selected recipe in results span
-//       resultsSpan.append("Name: " + matchedRecipe.name);
-//       resultsSpan.append("<br>");
-//       resultsSpan.append("Effect: " + matchedRecipe.mechanics);
-//       resultsSpan.append("<br>");
-//       resultsSpan.append("Recipe added to print queue.")
-      
-//       chemApp.addRecipeToPrintQueue(matchedRecipe);
-//   } else {
-//       // if the Recipe is not defined yet, show modal to define a new one
-//       $('#addNewModal').modal('show');
-//   }
-// });
-
-
-  // // check if selected properties form an existing recipe - if not, allow new one to be created
-  //TODO: make reacty
-  public checkIfRecipeExists(event: Event) {
-    var chosenProperties = this.state.selectedProperties;
-    var resultsSpan = $('.recipe-check-results');
-    // clear out previous display
-    resultsSpan.empty();
-    // display 
-    var matchedRecipe = this.checkForRecipeMatch(chosenProperties);
+    this.setState({recipeCheckResults: undefined})
+    let matchedRecipe = this.checkForRecipeMatch(this.state.selectedProperties);
     if (matchedRecipe) {
-        // clear out selected properties
-        $.each($('.selected-property'), function(i: number,p: any) {p.click();});
-        // show info about selected recipe in results span
-        resultsSpan.append("Name: " + matchedRecipe.name);
-        resultsSpan.append("<br>");
-        resultsSpan.append("Effect: " + matchedRecipe.mechanics);
-        resultsSpan.append("<br>");
-        resultsSpan.append("Recipe added to print queue.")
-        
-        //chemApp.addRecipeToPrintQueue(matchedRecipe);
+      //todo: add recipe to print queue
+      this.setState({
+        selectedProperties: [],
+        unselectedProperties: this.props.propertiesList,
+        recipeCheckResults: this.getRecipeSpan(matchedRecipe)
+      })
     } else {
-        // if the Recipe is not defined yet, show modal to define a new one
-        $('#addNewModal').modal('show');
+      //todo: add new recipe modal
     }
   }
 
-  // helper method for recipe check
-  // TODO: FIX TYPING
-  public checkForRecipeMatch(propsToCheck: IChemProperty[]): IChemRecipe | undefined {
+  private getRecipeSpan(matchedRecipe: IChemRecipe) {
+    return (
+      <span>
+        Name: {matchedRecipe.name}
+        <br/>
+        Effect: {matchedRecipe.mechanics}
+        <br/>
+        Recipe added to print queue.
+      </span>
+    )
+  }
+
+  public checkForRecipeMatch(propsToCheck: IChemProperty[]): IChemRecipe | null {
     let matchedRecipe: IChemRecipe | null = null;
     this.props.recipesList.forEach((recipe: IChemRecipe) => {
       // only a possible match if the number of properties input match the number of properties in the recipe
@@ -146,7 +124,7 @@ export class NewRecipeTab extends Component<NewRecipeTabProps, NewRecipeTabState
         }
       }
     });
-    return matchedRecipe || undefined;
+    return matchedRecipe;
   }
 
   private getSearchBox(): JSX.Element {
@@ -156,13 +134,14 @@ export class NewRecipeTab extends Component<NewRecipeTabProps, NewRecipeTabState
                className='form-control properties-list-filter' 
                placeholder='Filter properties...'
                onChange={this.filterSearch}
+               value={this.state.filterText}
                />
       </div>
     )
   }
 
   private getUnselectedPropertyButtons(): JSX.Element[] {
-    return this.state.unselectedProperties.map((property: IChemProperty) => 
+    return this.state.currentlyViewableUnselectedProperties.map((property: IChemProperty) => 
       this.getPropertyButton(property, false));
   }
   private getSelectedPropertyButtons(): JSX.Element[] {
@@ -187,7 +166,6 @@ export class NewRecipeTab extends Component<NewRecipeTabProps, NewRecipeTabState
 
   render() {
     const canAddToPrintQueue = this.state.selectedProperties.length > 0;
-
     return (
       <div className="tab-pane fade show active" id="checker" role="tabpanel" aria-labelledby="checker-tab">
         <div className="container">
@@ -209,7 +187,11 @@ export class NewRecipeTab extends Component<NewRecipeTabProps, NewRecipeTabState
                           onClick={this.handleRecipeCheck}>
                     Add to Print Queue
                   </button>
-                  <span className="recipe-check-results"></span>
+                  <span className="recipe-check-results">
+                    {this.state.recipeCheckResults &&
+                      this.state.recipeCheckResults
+                    }
+                  </span>
                 </div>
               </div>
             </div>
