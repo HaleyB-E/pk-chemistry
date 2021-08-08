@@ -7,48 +7,54 @@ import { NewRecipeModal } from './components/new-recipe-modal';
 import { NavBar } from './nav-bar';
 import './stylesheets/App.css';
 import { IChemProperty, IChemRecipe } from './helpers/entities';
-import { AirTableLoader } from './loader/airtable-loader';
+import { AirTableLoaderService } from './loader/airtable-loader';
 
 var $ = require('jquery');
 
-interface IChemLoader {
-  handleClientLoad(callback: () => AppState): AppState;
-  loadAll(): AppState;
-  isLoading: boolean;
-  isLoadingProperties: boolean;
-  isLoadingRecipes: boolean;
-  chemProperties: IChemProperty[];
-  chemRecipes: IChemRecipe[];
-}
-
 interface AppState {
+  isLoading: boolean;
+  isPropertiesLoadedSuccess: boolean;
+  isRecipesLoadedSuccess: boolean;
+  propertiesList: IChemProperty[];
+  recipesList: IChemRecipe[];
 }
 
 interface AppProps {
 }
 
 class App extends Component<AppProps, AppState> {
-  private propertiesList: IChemProperty[] = [];
-  private recipesList: IChemRecipe[] = [];
 
-  private airtableLoader = new AirTableLoader();
+  private airtableLoader = new AirTableLoaderService();
   constructor(props: any) {
     super(props);
-    this.propertiesList = this.airtableLoader.getPropertiesList();
-    this.recipesList = this.airtableLoader.getRecipesList();
+    this.state = {
+      isLoading: true,
+      isPropertiesLoadedSuccess: true,
+      isRecipesLoadedSuccess: true,
+      propertiesList: [],
+      recipesList: []
+    };
   }
 
-  render() {
+  async componentDidMount() {
+    var properties = await this.airtableLoader.loadPropertiesList();
+    var recipes = await this.airtableLoader.loadRecipesList();
+    this.setState({propertiesList: properties, isPropertiesLoadedSuccess: properties.length > 0,
+                   recipesList: recipes, isRecipesLoadedSuccess: properties.length > 0 });
+    this.setState({isLoading: false})
+  }
+
+  public render() {
     return (
       <div className="App">
-        {this.airtableLoader.isLoading() &&
+        {this.state.isLoading &&
           <div className="load-indicator-parent">
-            {this.airtableLoader.isLoadingProperties &&
+            {this.state.isPropertiesLoadedSuccess &&
               <div className="alert alert-warning" id="properties-load-indicator">
                   Properties loading...
               </div>
             }
-            {this.airtableLoader.isLoadingRecipes &&
+            {this.state.isRecipesLoadedSuccess &&
               <div className="alert alert-warning" id="recipes-load-indicator">
                   Recipes loading...
               </div>
@@ -56,12 +62,14 @@ class App extends Component<AppProps, AppState> {
           </div>
         }
         <NavBar/>
-        <div className="tab-content container" id="myTabContent">
-          <NewRecipeTab allProperties={this.propertiesList}/>
-          <PropertiesTab/>
-          <RecipesTab/>
-          <PrintTab/>
-        </div>
+        { !this.state.isLoading &&
+          <div className="tab-content container" id="myTabContent">
+            <NewRecipeTab propertiesList={this.state.propertiesList} recipesList={this.state.recipesList}/>
+            <PropertiesTab/>
+            <RecipesTab/>
+            <PrintTab/>
+          </div>
+        }
         <NewRecipeModal/>
         <hr/>
       </div>

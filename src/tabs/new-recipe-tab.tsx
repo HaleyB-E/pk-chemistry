@@ -1,81 +1,109 @@
 import { IChemProperty, IChemRecipe } from '../helpers/entities';
-import React, { Component } from 'react';
+import React, { ChangeEvent, Component, SyntheticEvent } from 'react';
+import * as _ from 'lodash';
 
 var $ = require('jquery');
 
 export interface NewRecipeTabProps {
-  allProperties: IChemProperty[];
+  propertiesList: IChemProperty[];
+  recipesList: IChemRecipe[];
 }
 
-export class NewRecipeTab extends Component<NewRecipeTabProps> {
+export interface NewRecipeTabState {
+  selectedProperties: IChemProperty[];
+  unselectedProperties: IChemProperty[];
+}
+
+export class NewRecipeTab extends Component<NewRecipeTabProps, NewRecipeTabState> {
   constructor(props: NewRecipeTabProps) {
     super(props);
-    this.propertiesList = props.allProperties;
+    this.filterSearch = this.filterSearch.bind(this);
+    this.handlePropertyClick = this.handlePropertyClick.bind(this);
+    this.handleRecipeCheck = this.handleRecipeCheck.bind(this);
+    this.state = {
+      selectedProperties: [],
+      unselectedProperties: this.props.propertiesList
+    };
   }
-//click handlers for checker tab
 
-// // filter list of properties by search box
-// $(document).on('keyup', ".properties-list-filter", function(event) {
-//   var filterText = event.target.value;
-//   $.each($('.unselected-property'), function(index, property) {
-//       if (property.value.includes(filterText)){
-//           $(property).show();
-//       }
-//       else {
-//           $(property).hide();
-//       }
-//   })
-// });
+  private filterSearch(event: ChangeEvent<HTMLInputElement>) {
+    const filterText = event.target.value;
+    $.each($('.unselected-property'), function(index: number, property: any) {
+      if (property.value.includes(filterText)){
+        $(property).show();
+      }
+      else {
+        $(property).hide();
+      }
+    })
+  }
 
-// // add property to right-hand-side if clicked on left
-// $(document).on('click', ".unselected-property", function(event) {
-//   // max recipe size is 8
-//   if ($('.selected-property').length === 8) {
-//       return;
+  private handlePropertyClick(event: SyntheticEvent) {
+    const clickedButton = event.currentTarget;
+    const propertyText = clickedButton.getAttribute('value') || '';
+    const property = _.find(this.props.propertiesList, p => p.name == propertyText);
+    // something went wrong and there's no matching property, yeet
+    if (!property) {
+      return;
+    }
+
+    // if previously unselected, add property to selected list
+    if (clickedButton.className.includes('unselected-property')) {
+      // max recipe size is 8
+      if (this.state.selectedProperties.length === 8) {
+        return;
+      }
+      this.setState({
+        selectedProperties: _.concat(this.state.selectedProperties, property),
+        unselectedProperties: _.filter(this.state.unselectedProperties, p => p.name !== property.name)
+      });
+    // if previously selected, remove property from selected list
+    } else if (clickedButton.className.includes('selected-property')) {
+      var unselected = _.concat(this.state.unselectedProperties, property);
+      unselected.sort((a,b) => a.name.localeCompare(b.name)) // re-alphabetize
+      this.setState({
+        selectedProperties: _.filter(this.state.selectedProperties, p => p.name !== property.name),
+        unselectedProperties: unselected
+      });
+    } else {
+      console.log('fuck')
+    }
+  }
+
+  // check if selected properties form an existing recipe - if not, allow new one to be created
+  private handleRecipeCheck() {
+    var chosenProperties = this.state.selectedProperties;
+
+  }
+// $(document).on('click', ".check-recipes-button", function(event) {
+//   var chosenProperties = getSelectedProperties();
+//   var resultsSpan = $('.recipe-check-results');
+//   // clear out previous display
+//   resultsSpan.empty();
+//   // display 
+//   var matchedRecipe = checkForRecipeMatch(chosenProperties);
+//   if (matchedRecipe) {
+//       // clear out selected properties
+//       $.each($('.selected-property'), function(i,p) {p.click();});
+//       // show info about selected recipe in results span
+//       resultsSpan.append("Name: " + matchedRecipe.name);
+//       resultsSpan.append("<br>");
+//       resultsSpan.append("Effect: " + matchedRecipe.mechanics);
+//       resultsSpan.append("<br>");
+//       resultsSpan.append("Recipe added to print queue.")
+      
+//       chemApp.addRecipeToPrintQueue(matchedRecipe);
+//   } else {
+//       // if the Recipe is not defined yet, show modal to define a new one
+//       $('#addNewModal').modal('show');
 //   }
-
-//   // first item in this list is the name, last element is the symbol
-//   var splitProperty = getPropertyArrayFromClick(event);
-
-//   var propertyButton = $("<button>").attr({
-//       type: 'button',
-//       class: 'btn btn-secondary btn-lg btn-block selected-property',
-//       id: splitProperty[0] + '-selected',
-//       value: splitProperty[0]
-//   });
-
-//   var nameSpan = $("<span class='property-name'>").text(splitProperty[0] + "   ");
-//   nameSpan.append($("<span>").text(splitProperty[3]).addClass('chem-symbol'))
-//   propertyButton.append(nameSpan)
-//   $(".selected-properties").append(propertyButton);
-  
-//   // there's at least one property on the RHS now, so user should be able to click "add"
-//   $('.check-recipes-button').prop('disabled',false);
-//   // reset filter and helptext
-//   $('.recipe-check-results').empty();
-//   $('.properties-list-filter').val('');
-//   $('.properties-list-filter').keyup();
 // });
 
-// // remove property from right-hand-side if clicked
-// $(document).on('click', ".selected-property", function(event) {
-//   var splitProperty = getPropertyArrayFromClick(event);
-//   var propertyToRemove = $('#' + splitProperty[0] + '-selected');
-//   $(propertyToRemove).remove()
-  
-//   // reset helptext
-//   $('.recipe-check-results').empty();
-  
-//   // don't let user save an empty recipe
-//   if ($('.selected-property').length === 0) {
-//       $('.check-recipes-button').prop('disabled',true);
-//   }
-// });
 
   // // check if selected properties form an existing recipe - if not, allow new one to be created
   //TODO: make reacty
   public checkIfRecipeExists(event: Event) {
-    var chosenProperties = this.getSelectedProperties();
+    var chosenProperties = this.state.selectedProperties;
     var resultsSpan = $('.recipe-check-results');
     // clear out previous display
     resultsSpan.empty();
@@ -98,23 +126,11 @@ export class NewRecipeTab extends Component<NewRecipeTabProps> {
     }
   }
 
-  //TODO UPDATE TPYINGS
-  public getPropertyArrayFromClick(event: any) {
-    var selectedProperty = event.target.textContent
-    // account for a click directly on the property symbol
-    if (selectedProperty.length === 1) {
-        selectedProperty = $(event.target)[0].parentNode.textContent
-    }
-    // first item in this list is the name, last element is the symbol
-    return selectedProperty.split(' ');
-  }
-
-
   // helper method for recipe check
   // TODO: FIX TYPING
   public checkForRecipeMatch(propsToCheck: IChemProperty[]): IChemRecipe | undefined {
     let matchedRecipe: IChemRecipe | null = null;
-    this.recipesList.forEach((recipe: IChemRecipe) => {
+    this.props.recipesList.forEach((recipe: IChemRecipe) => {
       // only a possible match if the number of properties input match the number of properties in the recipe
       if (propsToCheck.length === recipe.properties.length) {  
         var matches = true;
@@ -133,59 +149,64 @@ export class NewRecipeTab extends Component<NewRecipeTabProps> {
     return matchedRecipe || undefined;
   }
 
-  // get all currently-selected properties as list of string property names
-  //TODO UPDATE TYPINGS
-  public getSelectedProperties() {
-    let chosenProperties: IChemProperty[] = [];
-    $('.selected-property').find('.property-name').each(function(index: number, property: any) {
-        chosenProperties.push(property.textContent.split(' ')[0]);
-    });
-    chosenProperties.sort();
-    return chosenProperties;
-  }
-
-
-
-  private recipesList: IChemRecipe[] = [];
-  private propertiesList: IChemProperty[] = [];
-
   private getSearchBox(): JSX.Element {
     return (
       <div className='input-group-text search-box'>
-        <input type='text' className='form-control properties-list-filter' placeholder='Filter properties...'/>
+        <input type='text' 
+               className='form-control properties-list-filter' 
+               placeholder='Filter properties...'
+               onChange={this.filterSearch}
+               />
       </div>
     )
   }
 
-  private getPropertyButtons(): JSX.Element[] {
-    return this.propertiesList.map((property: IChemProperty) =>
-      <button type='button' className='btn btn-secondary btn-lg btn-block unselected-property'
-              id={property.name} value={property.name}>
-        <span className='property-name'>{property.name + '   '}
-          <span className='chem-symbol'>{property.symbol}</span>
-        </span>
-      </button>
+  private getUnselectedPropertyButtons(): JSX.Element[] {
+    return this.state.unselectedProperties.map((property: IChemProperty) => 
+      this.getPropertyButton(property, false));
+  }
+  private getSelectedPropertyButtons(): JSX.Element[] {
+    return this.state.selectedProperties.map((property: IChemProperty) => 
+      this.getPropertyButton(property, true));
+  }
+  private getPropertyButton(property: IChemProperty, isSelected: boolean) {
+    const isSelectedClass = isSelected ? 'selected-property' : 'unselected-property';
+    return (
+    <button type='button'
+      className={'btn btn-secondary btn-lg btn-block '+ isSelectedClass}
+      id={property.name}
+      value={property.name}
+      key={property.name}
+      onClick={this.handlePropertyClick}>
+      <span className='property-name'>{property.name + '   '}
+        <span className='chem-symbol'>{property.symbol}</span>
+      </span>
+    </button>
     );
   }
 
   render() {
+    const canAddToPrintQueue = this.state.selectedProperties.length > 0;
+
     return (
       <div className="tab-pane fade show active" id="checker" role="tabpanel" aria-labelledby="checker-tab">
         <div className="container">
-        {/* style="margin-top:10px;"> */}
           <div className="row">
             <div className="col">
               <div className="milonga checker-tab-header-text">Select properties for the recipe:</div>
                 <div className="unselected-properties property-column">
                   {this.getSearchBox()}
-                  {this.getPropertyButtons()}
+                  {this.getUnselectedPropertyButtons()}
                 </div>
             </div>
             <div className="col">
               <div className="milonga checker-tab-header-text">Selected properties:</div>
               <div className="selected-properties property-column">
                 <div>
-                  <button className="btn btn-lg btn-block check-recipes-button action-button milonga" disabled>
+                  {this.getSelectedPropertyButtons()}
+                  <button className="btn btn-lg btn-block check-recipes-button action-button milonga"
+                          disabled={!canAddToPrintQueue}
+                          onClick={this.handleRecipeCheck}>
                     Add to Print Queue
                   </button>
                   <span className="recipe-check-results"></span>
