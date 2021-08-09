@@ -2,11 +2,11 @@ import { IChemProperty, IChemRecipe } from '../helpers/entities';
 import React, { ChangeEvent, Component, SyntheticEvent } from 'react';
 import * as _ from 'lodash';
 
-var $ = require('jquery');
-
 export interface NewRecipeTabProps {
   propertiesList: IChemProperty[];
   recipesList: IChemRecipe[];
+  addToPrintQueue: (recipe: IChemRecipe) => void;
+  setModalVisibility: (isVisible: boolean) => void;
 }
 
 export interface NewRecipeTabState {
@@ -83,14 +83,14 @@ export class NewRecipeTab extends Component<NewRecipeTabProps, NewRecipeTabState
     this.setState({recipeCheckResults: undefined})
     let matchedRecipe = this.checkForRecipeMatch(this.state.selectedProperties);
     if (matchedRecipe) {
-      //todo: add recipe to print queue
+      this.props.addToPrintQueue(matchedRecipe);
       this.setState({
         selectedProperties: [],
         unselectedProperties: this.props.propertiesList,
         recipeCheckResults: this.getRecipeSpan(matchedRecipe)
-      })
+      });
     } else {
-      //todo: add new recipe modal
+      this.props.setModalVisibility(true);
     }
   }
 
@@ -107,11 +107,17 @@ export class NewRecipeTab extends Component<NewRecipeTabProps, NewRecipeTabState
   }
 
   public checkForRecipeMatch(propsToCheck: IChemProperty[]): IChemRecipe | null {
+    // alphabetize properties to check
+    propsToCheck.sort((a,b) => a.name.localeCompare(b.name))
+
     let matchedRecipe: IChemRecipe | null = null;
     this.props.recipesList.forEach((recipe: IChemRecipe) => {
       // only a possible match if the number of properties input match the number of properties in the recipe
       if (propsToCheck.length === recipe.properties.length) {  
         var matches = true;
+        // make sure recipe properties are alphabetized
+        recipe.properties.sort((a,b) => a.localeCompare(b))
+
         propsToCheck.forEach((prop: IChemProperty, index) => {
           if ((recipe.properties[index] !== prop.name)) {
             matches = false;
@@ -174,6 +180,7 @@ export class NewRecipeTab extends Component<NewRecipeTabProps, NewRecipeTabState
               <div className="milonga checker-tab-header-text">Select properties for the recipe:</div>
                 <div className="unselected-properties property-column">
                   {this.getSearchBox()}
+                  <br/>
                   {this.getUnselectedPropertyButtons()}
                 </div>
             </div>
