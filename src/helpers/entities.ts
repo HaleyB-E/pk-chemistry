@@ -4,6 +4,7 @@ export interface IChemRecipe {
   type: string;
   mechanics: string;
   properties: string[];
+  makerName?: string;
 }
 
 export interface IChemProperty {
@@ -12,3 +13,12 @@ export interface IChemProperty {
   defaultForm: string;
   symbol: string;
 }
+
+export interface IPrintConfig {
+  styles: any;
+  fonts: any;
+  defaults: any;
+  images: any;
+}
+
+export type TabType = 'NewRecipe' | 'PropertiesList' | 'RecipesList' | 'PrintList';
