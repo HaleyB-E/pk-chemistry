@@ -80,10 +80,12 @@ export class AirTableLoaderService {
             }, function done(err) {
                 if (err) { 
                     console.error(err);
-                    reject(err);
+                    reject(err)
                 } else {
                     // alphabetize
-                    list.sort(function(a,b) {return a.name.localeCompare(b.name)});
+                    list.sort(function(a,b) {
+                        return (a.name + '').localeCompare(b.name + '')
+                    });
                     resolve(list);
                 }
             });

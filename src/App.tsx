@@ -5,7 +5,7 @@ import { RecipesTab } from './tabs/recipes-tab';
 import { PrintTab } from './tabs/print-tab';
 import { NavBar } from './nav-bar';
 import './stylesheets/App.css';
-import { IChemProperty, IChemRecipe } from './helpers/entities';
+import { IChemProperty, IChemRecipe, TabType } from './helpers/entities';
 import { AirTableLoaderService } from './loader/airtable-loader';
 import * as _ from 'lodash';
 import { NewRecipeModal } from './components/new-recipe-modal';
@@ -18,6 +18,7 @@ interface AppState {
   recipesList: IChemRecipe[];
   printQueue: IChemRecipe[];
   newRecipeModalVisible: boolean;
+  currentTab: TabType;
 }
 
 interface AppProps {
@@ -30,12 +31,13 @@ class App extends Component<AppProps, AppState> {
     super(props);
     this.state = {
       isLoading: true,
-      isPropertiesLoadedSuccess: true,
-      isRecipesLoadedSuccess: true,
+      isPropertiesLoadedSuccess: false,
+      isRecipesLoadedSuccess: false,
       propertiesList: [],
       recipesList: [],
       printQueue: [],
-      newRecipeModalVisible: false
+      newRecipeModalVisible: false,
+      currentTab: 'NewRecipe'
     };
     this.addToPrintQueue = this.addToPrintQueue.bind(this);
     this.setModalVisibility = this.setModalVisibility.bind(this);
@@ -45,20 +47,22 @@ class App extends Component<AppProps, AppState> {
     var properties = await this.airtableLoader.loadPropertiesList();
     var recipes = await this.airtableLoader.loadRecipesList();
     this.setState({propertiesList: properties, isPropertiesLoadedSuccess: properties.length > 0,
-                   recipesList: recipes, isRecipesLoadedSuccess: properties.length > 0 });
-    this.setState({isLoading: false});
+                   recipesList: recipes, isRecipesLoadedSuccess: recipes.length > 0 });
+    this.setState({isLoading: !(properties.length > 0 && recipes.length > 0) });
   }
 
-  public addToPrintQueue(recipe: IChemRecipe) {
-    this.setState({
-      printQueue: _.concat(this.state.printQueue, recipe)
-    });
+  private setActiveTab = (tab: TabType): void => {
+    this.setState({currentTab: tab});
   }
 
-  public setModalVisibility(isVisible: boolean) {
+  public setModalVisibility = (isVisible: boolean) => {
     this.setState({
       newRecipeModalVisible: isVisible
     });
+  }
+
+  public addToPrintQueue = (recipe: IChemRecipe) => {
+    this.setState({printQueue: [...this.state.printQueue, recipe] })
   }
 
   public render() {
@@ -66,29 +70,48 @@ class App extends Component<AppProps, AppState> {
       <div className="App">
         {this.state.isLoading &&
           <div className="load-indicator-parent">
-            {this.state.isPropertiesLoadedSuccess &&
+            {!this.state.isPropertiesLoadedSuccess &&
               <div className="alert alert-warning" id="properties-load-indicator">
                   Properties loading...
               </div>
             }
-            {this.state.isRecipesLoadedSuccess &&
+            {!this.state.isRecipesLoadedSuccess &&
               <div className="alert alert-warning" id="recipes-load-indicator">
                   Recipes loading...
               </div>
             }
           </div>
         }
-        <NavBar/>
-        { !this.state.isLoading &&
+        <NavBar currentTab={this.state.currentTab} setActiveTab={this.setActiveTab}/>
+        {!this.state.isLoading &&
           <div className="tab-content container" id="myTabContent">
-            <NewRecipeTab propertiesList={this.state.propertiesList}
-                          recipesList={this.state.recipesList}
-                          addToPrintQueue={this.addToPrintQueue}
-                          setModalVisibility={this.setModalVisibility}/>
-            <PropertiesTab/>
-            <RecipesTab/>
-            <PrintTab/>
-            <NewRecipeModal isOpen={this.state.newRecipeModalVisible} setVisible={this.setModalVisibility}/>
+            {this.state.currentTab === 'NewRecipe' &&
+              <>
+                <NewRecipeTab propertiesList={this.state.propertiesList}
+                  recipesList={this.state.recipesList}
+                  addToPrintQueue={this.addToPrintQueue}
+                  setModalVisibility={this.setModalVisibility}
+                />
+                <NewRecipeModal
+                  isOpen={this.state.newRecipeModalVisible} 
+                  setVisible={this.setModalVisibility}
+                />
+              </>
+            }
+            {this.state.currentTab === 'PropertiesList' &&
+              <PropertiesTab propertiesList={this.state.propertiesList}/>
+            }
+            {this.state.currentTab === 'RecipesList' &&
+              <RecipesTab
+                recipesList={this.state.recipesList}
+                addToPrintQueue={this.addToPrintQueue}
+              />
+            }
+            {this.state.currentTab === 'PrintList' &&
+              <PrintTab
+                printQueue={this.state.printQueue}
+              />
+            }
           </div>
         }
         <hr/>
