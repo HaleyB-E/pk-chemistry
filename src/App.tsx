@@ -8,7 +8,6 @@ import './stylesheets/App.css';
 import { IChemProperty, IChemRecipe, TabType } from './helpers/entities';
 import { AirTableLoaderService } from './loader/airtable-loader';
 import * as _ from 'lodash';
-import { NewRecipeModal } from './components/new-recipe-modal';
 
 interface AppState {
   isLoading: boolean;
@@ -17,7 +16,6 @@ interface AppState {
   propertiesList: IChemProperty[];
   recipesList: IChemRecipe[];
   printQueue: IChemRecipe[];
-  newRecipeModalVisible: boolean;
   currentTab: TabType;
 }
 
@@ -25,7 +23,6 @@ interface AppProps {
 }
 
 class App extends Component<AppProps, AppState> {
-
   private airtableLoader = new AirTableLoaderService();
   constructor(props: AppProps) {
     super(props);
@@ -36,11 +33,9 @@ class App extends Component<AppProps, AppState> {
       propertiesList: [],
       recipesList: [],
       printQueue: [],
-      newRecipeModalVisible: false,
       currentTab: 'NewRecipe'
     };
     this.addToPrintQueue = this.addToPrintQueue.bind(this);
-    this.setModalVisibility = this.setModalVisibility.bind(this);
   }
 
   async componentDidMount() {
@@ -53,12 +48,6 @@ class App extends Component<AppProps, AppState> {
 
   private setActiveTab = (tab: TabType): void => {
     this.setState({currentTab: tab});
-  }
-
-  public setModalVisibility = (isVisible: boolean) => {
-    this.setState({
-      newRecipeModalVisible: isVisible
-    });
   }
 
   public addToPrintQueue = (recipe: IChemRecipe) => {
@@ -90,11 +79,7 @@ class App extends Component<AppProps, AppState> {
                 <NewRecipeTab propertiesList={this.state.propertiesList}
                   recipesList={this.state.recipesList}
                   addToPrintQueue={this.addToPrintQueue}
-                  setModalVisibility={this.setModalVisibility}
-                />
-                <NewRecipeModal
-                  isOpen={this.state.newRecipeModalVisible} 
-                  setVisible={this.setModalVisibility}
+                  airtableLoader={this.airtableLoader}
                 />
               </>
             }

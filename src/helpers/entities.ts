@@ -8,6 +8,7 @@ export interface IChemRecipe {
 }
 
 export interface IChemProperty {
+  id: string;
   name: string;
   effect: string;
   defaultForm: string;

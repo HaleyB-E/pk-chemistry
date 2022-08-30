@@ -1,12 +1,14 @@
 import { IChemProperty, IChemRecipe } from '../helpers/entities';
 import React, { ChangeEvent, Component, SyntheticEvent } from 'react';
 import * as _ from 'lodash';
+import { NewRecipeModal } from '../components/new-recipe-modal';
+import { AirTableLoaderService } from '../loader/airtable-loader';
 
 export interface NewRecipeTabProps {
   propertiesList: IChemProperty[];
   recipesList: IChemRecipe[];
   addToPrintQueue: (recipe: IChemRecipe) => void;
-  setModalVisibility: (isVisible: boolean) => void;
+  airtableLoader: AirTableLoaderService;
 }
 
 export interface NewRecipeTabState {
@@ -15,6 +17,7 @@ export interface NewRecipeTabState {
   currentlyViewableUnselectedProperties: IChemProperty[];
   recipeCheckResults?: JSX.Element;
   filterText: string;
+  newRecipeModalVisible: boolean;
 }
 
 export class NewRecipeTab extends Component<NewRecipeTabProps, NewRecipeTabState> {
@@ -28,7 +31,8 @@ export class NewRecipeTab extends Component<NewRecipeTabProps, NewRecipeTabState
       unselectedProperties: _.cloneDeep(this.props.propertiesList),
       currentlyViewableUnselectedProperties: _.cloneDeep(this.props.propertiesList),
       recipeCheckResults: undefined,
-      filterText: ''
+      filterText: '',
+      newRecipeModalVisible: false
     };
   }
 
@@ -90,7 +94,7 @@ export class NewRecipeTab extends Component<NewRecipeTabProps, NewRecipeTabState
         recipeCheckResults: this.getRecipeSpan(matchedRecipe)
       });
     } else {
-      this.props.setModalVisibility(true);
+      this.setModalVisibility(true);
     }
   }
 
@@ -170,6 +174,12 @@ export class NewRecipeTab extends Component<NewRecipeTabProps, NewRecipeTabState
     );
   }
 
+  public setModalVisibility = (isVisible: boolean) => {
+    this.setState({
+      newRecipeModalVisible: isVisible
+    });
+  }
+
   render() {
     const canAddToPrintQueue = this.state.selectedProperties.length > 0;
     return (
@@ -203,7 +213,14 @@ export class NewRecipeTab extends Component<NewRecipeTabProps, NewRecipeTabState
               </div>
             </div>
           </div>
-        </div>  
+        </div>
+
+        <NewRecipeModal
+          isOpen={this.state.newRecipeModalVisible} 
+          setVisible={this.setModalVisibility}
+          airtableLoader={this.props.airtableLoader}
+          selectedProperties={this.state.selectedProperties}
+        />  
       </div> 
     );
   }
