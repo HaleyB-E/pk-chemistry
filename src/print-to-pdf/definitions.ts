@@ -35,7 +35,7 @@ export const printToPdfConfig: IPrintConfig = {
     symbol: { fontSize: 18, font: 'Alchemy' },
     header: { fontSize: 12, font: 'Milonga' },
     remainingWidth: {width: '*'},
-    sealText: {fontSize: 9, alignment: 'center'}
+    sealText: {fontSize: 9, alignment: 'center'},
   },
   fonts: {
     Milonga: {

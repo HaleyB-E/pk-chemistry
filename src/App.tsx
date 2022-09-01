@@ -71,7 +71,11 @@ class App extends Component<AppProps, AppState> {
             }
           </div>
         }
-        <NavBar currentTab={this.state.currentTab} setActiveTab={this.setActiveTab}/>
+        <NavBar
+          currentTab={this.state.currentTab}
+          setActiveTab={this.setActiveTab}
+          printQueueCount={this.state.printQueue.length}
+        />
         {!this.state.isLoading &&
           <div className="tab-content container" id="myTabContent">
             {this.state.currentTab === 'NewRecipe' &&

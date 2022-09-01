@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { IChemRecipe } from '../helpers/entities';
 import { generateRecipeTableRow } from '../helpers/helpers';
-import { PrintToPdfHandler } from '../print-to-pdf/cell-formatter';
+import { PrintToPdfHandler } from '../print-to-pdf/printToPdfHandler';
 
 interface PrintTabProps {
   printQueue: IChemRecipe[];
@@ -45,16 +45,5 @@ export class PrintTab extends Component<PrintTabProps> {
 
   private printToPdf = (): void => {
     PrintToPdfHandler.makePdf(this.props.printQueue);
-
-    // pdfMake.fonts = printToPdfConfig.fonts;
-    // var docDefinition = {
-    //   pageSize: 'LETTER',
-    //   pageOrientation: 'landscape',
-    //   content: contentArray,
-    //   defaultStyle: printToPdfConfig.defaults,
-    //   styles: printToPdfConfig.styles,
-    //   images: printToPdfConfig.images
-    // };
-    // pdfMake.createPdf(docDefinition).download('test2.pdf')
   }
 }

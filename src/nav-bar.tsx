@@ -4,6 +4,7 @@ import { TabType } from './helpers/entities';
 interface NavBarProps {
   setActiveTab: (tab: TabType) => void;
   currentTab: TabType;
+  printQueueCount: number;
 }
 
 export class NavBar extends Component<NavBarProps> {
@@ -34,9 +35,15 @@ export class NavBar extends Component<NavBarProps> {
         </li>
         <li className="nav-item">
           <a className={`nav-link ${currentTab === 'PrintList' ? 'active' : ''}`} id="print-tab"
-             data-toggle="tab" href="#print" role="tab"
-             aria-controls="print" onClick={() => this.props.setActiveTab('PrintList')}>
-            Print <span className="badge badge-pill" id="print-recipes-count"></span>
+            data-toggle="tab" href="#print" role="tab"
+            aria-controls="print" onClick={() => this.props.setActiveTab('PrintList')}
+          >
+            Print 
+            {this.props.printQueueCount > 0 &&
+              <span className="badge badge-pill" id="print-recipes-count">
+                {this.props.printQueueCount}
+              </span>
+            }
           </a>
         </li>
       </ul>
