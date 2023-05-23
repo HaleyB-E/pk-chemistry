@@ -1,9 +1,7 @@
 import React from "react";
 import { IChemRecipe } from "../helpers/entities";
 import { printToPdfConfig, typeLookup, fontConfig } from "./definitions";
-import pdfMake, {createPdf} from 'pdfmake/build/pdfmake';
-import pdf, { PDFColumn, PDFColumns, PDFDocument, PDFTable, PDFTableColumn, PDFTableRow, PDFText } from "react-pdfmake/lib";
-
+import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from "pdfmake/build/vfs_fonts"
 pdfMake.vfs = pdfFonts.pdfMake.vfs;
 
@@ -11,66 +9,31 @@ export class PrintToPdfHandler {
   public makePdf = (printQueue: IChemRecipe[]): void => {
     pdfMake.fonts = fontConfig;
 
-    const y = printQueue.map(recipe => recipe.mechanics)[0]
-    pdf(
-      <PDFDocument
-        pageSize='LETTER'
-        pageOrientation='landscape'
-        pageBreakBefore={(currentNode, followingNodesOnPage) => {
-          return (
-            currentNode.headlineLevel === 1 && followingNodesOnPage.length === 0
-          );
-        }}
-        styles={printToPdfConfig.styles}
-        defaultStyle={printToPdfConfig.defaults}
-      >
-        <PDFText style='header'>
-          {y}
-        </PDFText>
-      </PDFDocument>
-    ).open();
-
-    // let contentArray: any[] = [];
-    // printQueue.forEach((recipe, index) => {
-    //   contentArray = PrintToPdfHandler.makeTag(contentArray, recipe);
-    //   contentArray = PrintToPdfHandler.makeSpacer(contentArray, (index + 1) % 3 === 0)
-    // });
-    // pdfMake.fonts = printToPdfConfig.fonts;
-    // const docDefinition = {
-    //   pageSize: 'LETTER' as any,
-    //   pageOrientation: 'landscape' as any,
-    //   content: contentArray,
-    //   defaultStyle: printToPdfConfig.defaults,
-    //   styles: printToPdfConfig.styles,
-    //   images: printToPdfConfig.images
-    // };
-    //pdfMake.createPdf(docDefinition).open();//.download('test2.pdf')
-    // const x = (
-    //     <PDFDocument
-    //       pageSize="LETTER"
-    //       pageOrientation="landscape"
-    //       styles={printToPdfConfig.styles}
-    //       defaultStyle={printToPdfConfig.defaults}
-    //     >
-    //       <PDFTable>
-    //         {printQueue.map((recipe, index) => {
-    //           {this.makeTagReact(recipe)}
-    //           {this.spacerReact((index + 1) % 3 === 0)}
-    //         })}
-    //       </PDFTable>
-    //     </PDFDocument>
-    // );
-    //pdf(x).open();
+    let contentArray: any[] = [];
+    // add recipes to the print stack; skip to a new page after every third tag
+    printQueue.forEach( (recipe,index) => {
+      contentArray = this.makeTag(contentArray, recipe);
+      contentArray = this.makeSpacer(contentArray, (index + 1) % 3 === 0)
+    })
+    const docDefinition = {
+      pageSize: 'LETTER' as any,
+      pageOrientation: 'landscape' as any,
+      content: contentArray,
+      defaultStyle: printToPdfConfig.defaults,
+      styles: printToPdfConfig.styles,
+      images: printToPdfConfig.images
+    };
+    pdfMake.createPdf(docDefinition).open();
   } 
 
   // // add each cell of the table composing a single tag, one at a time, then format
-  public static makeTag = (contentArray: any[], recipe: IChemRecipe): any[] => {
+  public makeTag = (contentArray: any[], recipe: IChemRecipe): any[] => {
     var tableBody = [[]];
-    PrintToPdfHandler.addMakersMarkCell(tableBody, recipe);
-    // PrintToPdfHandler.addLogoCell(tableBody, recipe);
-    // PrintToPdfHandler.addRecipeCell(tableBody, recipe);
-    // PrintToPdfHandler.addTypeCell(tableBody, recipe);
-    // PrintToPdfHandler.addEffectCell(tableBody, recipe);
+    this.addMakersMarkCell(tableBody, recipe);
+    this.addLogoCell(tableBody, recipe);
+    this.addRecipeCell(tableBody, recipe);
+    this.addTypeCell(tableBody, recipe);
+    this.addEffectCell(tableBody, recipe);
     contentArray.push({
       table: {
         widths: [18, 87, '6%', '15%', '*'],
@@ -84,23 +47,7 @@ export class PrintToPdfHandler {
     return contentArray;
   };
 
-  private makeTagReact = (recipe: IChemRecipe): JSX.Element => {
-    //        widths: [18, 87, '6%', '15%', '*'],
-    //heights: [112],
-    return (
-      <>
-        <PDFTable style='tableBody'>
-          {this.makersMarkCellReact(recipe)}
-          {this.logoCellReact(recipe)}
-          {this.recipeCellReact(recipe)}
-          {this.typeCellReact(recipe)}
-          {this.effectCellReact(recipe)}
-        </PDFTable>
-      </>
-    )
-  }
-
-  private static addMakersMarkCell = (body: any[], recipe: IChemRecipe): any[] => {
+  private addMakersMarkCell = (body: any[], recipe: IChemRecipe): any[] => {
     if (recipe.makerName && recipe.makerName.length > 0) {
       body[0].push([
         {
@@ -116,28 +63,8 @@ export class PrintToPdfHandler {
     }
     return body;
   };
-  private makersMarkCellReact = (recipe: IChemRecipe): JSX.Element => {
-    if (recipe.makerName && recipe.makerName.length > 0) {
-      // {
-      //   image: recipe.makerName, 
-      //   width: 18,
-      //   alignment: 'center'
-      // }
-      return (
-        <PDFText>
-          IMAGE HERE
-        </PDFText>
-      )
-    }
-    return (
-      <PDFText>
-        <br/>
-      </PDFText>
-    );
-  }
-
-
-  private static addLogoCell = (body: any[], recipe: IChemRecipe): any[] => {
+ 
+  private addLogoCell = (body: any[], recipe: IChemRecipe): any[] => {
     var sealColor = recipe.color.toUpperCase();
     body[0].push([
       {
@@ -169,35 +96,9 @@ export class PrintToPdfHandler {
     ]);
     return body;
   };
-  private logoCellReact = (recipe: IChemRecipe): JSX.Element => {
-    var sealColor = recipe.color.toUpperCase();
-    // image: 'logo', 
-    // width: 54,
-    // alignment: 'center'
-   return (
-      <PDFTableColumn>
-        <PDFColumns>
-          <PDFColumn style="remainingWidth">
-          </PDFColumn>
-          <PDFColumn style="sealText">
-            {`${sealColor} SEAL`}
-          </PDFColumn>
-          <PDFColumn style="remainingWidth">
-          </PDFColumn>
-        </PDFColumns>
-        <PDFColumns>
-          <PDFColumn>{'\n'}</PDFColumn>
-        </PDFColumns>
-        <PDFColumns>
-          <PDFColumn>
-            IMAGE HERE
-          </PDFColumn>
-        </PDFColumns>
-      </PDFTableColumn>
-    );
-  }
   
-  private static addTypeCell = (body: any[], recipe: IChemRecipe): any[] => {
+  
+  private addTypeCell = (body: any[], recipe: IChemRecipe): any[] => {
     body[0].push({
       stack: [
         {
@@ -224,26 +125,8 @@ export class PrintToPdfHandler {
     });
     return body;
   };
-  private typeCellReact = (recipe: IChemRecipe): JSX.Element => {
-    //          heights: ['*', 'auto', 'auto'],
-    // layout=noBorders
-    return (
-      <PDFTable>
-        <PDFTableColumn>
-          {'\n\n\n\n'}
-        </PDFTableColumn>
-        <PDFTableColumn style='typeText'>
-          {recipe.type}
-        </PDFTableColumn>
-        <PDFTableColumn style='sealText'>
-          {typeLookup(recipe.type)}
-        </PDFTableColumn>
-      </PDFTable>
-    )
-      //border: [true, true, false, true]
-  };
 
-  private static addEffectCell = (body: any[], recipe: IChemRecipe): any[] => {
+  private addEffectCell = (body: any[], recipe: IChemRecipe): any[] => {
     body[0].push(
       {
         stack: [
@@ -265,24 +148,8 @@ export class PrintToPdfHandler {
     );
     return body;
   };
-  private effectCellReact = (recipe: IChemRecipe): JSX.Element => {
-  //     border: [false, true, true, true]
-    return (
-      <>
-        <PDFText>
-          {'\n'}
-        </PDFText>
-        <PDFText style='name'>
-          {recipe.name}
-        </PDFText>
-        <PDFText style='mechanics'>
-          {recipe.mechanics}
-        </PDFText>
-      </>
-    )
-  }
   
-  private static addRecipeCell = (body: any[], recipe: IChemRecipe): any[] => {
+  private addRecipeCell = (body: any[], recipe: IChemRecipe): any[] => {
     let txt = ''
     let containsArcane = false;
     recipe.properties.forEach((property,index) => {
@@ -322,52 +189,8 @@ export class PrintToPdfHandler {
     ]);
     return body;
   };
-  private recipeCellReact = (recipe: IChemRecipe): JSX.Element => {
-    let txt = ''
-    let containsArcane = false;
-    recipe.properties.forEach((property,index) => {
-      const symbol = property.symbol
-      if (!symbol && property.name === 'arcane') {
-        containsArcane = true;
-      } else {
-        txt = txt.concat(`${symbol}\n`);
-      }
-    });
   
-    let arcaneImg = {};
-    if (containsArcane) {
-      // TODO
-      arcaneImg = {
-        image: 'arcane', 
-        width: 18,
-        alignment: 'center'
-      }
-    }
-  
-    let verticalSpacer = {};
-    const numSpaces = 8 - recipe.properties.length;
-    if (numSpaces > 0) {
-      verticalSpacer = 
-      <PDFText>
-        {'\n'.repeat(numSpaces)}
-      </PDFText>
-    }
-  
-    return (
-      <>
-        <PDFText>
-          {'\n'}
-        </PDFText>
-        {verticalSpacer}
-        {arcaneImg}
-        <PDFText style='alchemy'>
-          {txt}
-        </PDFText>
-      </>
-    );
-  }
-  
-  public static makeSpacer = (contentArray: any[], isPageBreak: boolean): any[] => {
+  private makeSpacer = (contentArray: any[], isPageBreak: boolean): any[] => {
     if (isPageBreak) {
       contentArray.push({
         text: ' ',
@@ -380,11 +203,5 @@ export class PrintToPdfHandler {
     });
     }
     return contentArray;
-  }
-  private spacerReact = (isPageBreak: boolean): JSX.Element => {
-    if (isPageBreak) {
-      return <PDFText pageBreak='after'>{' '}</PDFText>
-    }
-    return <PDFText style='spacer'>{'\n\n\n\n'}</PDFText>
-  }
+  };
 }
