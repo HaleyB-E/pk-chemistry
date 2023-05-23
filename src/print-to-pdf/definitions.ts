@@ -29,13 +29,41 @@ export function typeLookup(type: string) {
   };
 };
 
+export const fontConfig = {
+  Milonga: {
+    normal: 'Milonga-Regular.ttf',
+    bold: 'Milonga-Regular.ttf',
+    italics: 'Milonga-Regular.ttf',
+    bolditalics: 'Milonga-Regular.ttf'
+  },
+  Alchemy: {
+    normal: 'Alchemy-Regular.TTF',
+    bold: 'Alchemy-Regular.TTF',
+    italics: 'Alchemy-Regular.TTF',
+    bolditalics: 'Alchemy-Regular.TTF'
+  },
+  Arial: {
+    normal: 'arial.ttf',
+    bold: 'arialb.ttf',
+    italics: 'ariali.ttf',
+    bolditalics: 'arialbi.ttf'
+  }
+};
+
 // define styles and fonts for the elixir labels here
 export const printToPdfConfig: IPrintConfig = {
   styles: {
     symbol: { fontSize: 18, font: 'Alchemy' },
     header: { fontSize: 12, font: 'Milonga' },
     remainingWidth: {width: '*'},
+
     sealText: {fontSize: 9, alignment: 'center'},
+    name: { fontSize: 14, font: 'Milonga', alignment: 'center'},
+    mechanics: { fontSize: 10, alignment: 'center'},
+    alchemy: {fontSize: 15, alignment: 'center', font: 'Alchemy'},
+    spacer: {fontSize: 12},
+    typeText: {alignment: 'center', font: 'Milonga'},
+    tableBody: {defaultBorder: false}
   },
   fonts: {
     Milonga: {

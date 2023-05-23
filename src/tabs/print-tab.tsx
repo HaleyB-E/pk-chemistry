@@ -79,6 +79,6 @@ export class PrintTab extends Component<PrintTabProps, PrintTabState> {
         makerName: this.state.makersMarks[index]
       }
     })
-    PrintToPdfHandler.makePdf(printQueueWithMarks);
+    new PrintToPdfHandler().makePdf(printQueueWithMarks);
   }
 }
