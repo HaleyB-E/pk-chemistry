@@ -7,7 +7,9 @@ export const MakersMarkList = [
   'serelia',
   'serendipity',
   'ursula',
-  'melope'
+  'melope',
+  'morrigan',
+  'kovatch'
 ];
 
 interface IRecipeTableRowProps {
@@ -49,7 +51,7 @@ export class RecipeTableRow extends Component<IRecipeTableRowProps> {
           {recipe.type}
         </td>
         <td className='recipe-properties'>
-          Contains: {recipe.properties.join(', ')}
+          Contains: {recipe.properties.map(prop => prop.name).join(', ')}
         </td>
         <td className='recipe-description'>
           {recipe.mechanics}

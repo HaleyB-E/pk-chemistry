@@ -1,10 +1,12 @@
 import Airtable, { Base } from "airtable";
 import { IChemProperty, IChemRecipe } from "../helpers/entities";
+import { compact } from "lodash";
 
 export interface AirtableProperty {
   Name: string,
   SinglePropertyEffect: string,
   DefaultForm: string,
+  Symbol: string
 }
 
 export interface AirtableRecipe {
@@ -41,7 +43,7 @@ export class AirTableLoaderService {
             name: fields.Name,
             effect: fields.SinglePropertyEffect,
             defaultForm: fields.DefaultForm,
-            symbol: 'x' //TODO: load symbols into airtable
+            symbol: fields.Symbol
           });
         });
         fetchNextPage();
@@ -59,7 +61,7 @@ export class AirTableLoaderService {
   }
 
   // load previously-defined recipes: each has a form, effect, and up to 8 properties
-  async loadRecipesList(): Promise<IChemRecipe[]> {
+  async loadRecipesList(propertiesList: IChemProperty[]): Promise<IChemRecipe[]> {
     return new Promise((resolve, reject) => {
       const recipesTable = this.chemDataBase.table('Recipes');
       let list: IChemRecipe[] = [];
@@ -69,12 +71,15 @@ export class AirTableLoaderService {
         records.forEach(function(record) {
           // this is fine, trust me
           const fields = record.fields as any as AirtableRecipe
+
+          const recipeProps = fields.Properties.map(prop => (propertiesList.find(p => p.name === prop)));
+
           list.push({
             name: fields.Name,
             color: fields.Color,
             mechanics: fields.Effect,
             type: fields.Type,
-            properties: fields.Properties
+            properties: compact(recipeProps)
           });
         });
         fetchNextPage();
@@ -96,7 +101,6 @@ export class AirTableLoaderService {
   // save new recipe definition to airtable
   saveNewRecipe(newRecipe: IChemRecipe): void {
     const recipesTable = this.chemDataBase.table('Recipes');
-
     recipesTable.create([
       {
         "fields": {
@@ -104,7 +108,7 @@ export class AirTableLoaderService {
           "Color": newRecipe.color,
           "Type": newRecipe.type,
           "Effect": newRecipe.mechanics,
-          "propertiesLinked": newRecipe.properties
+          "propertiesLinked": newRecipe.properties.map(prop => prop.name)
         }
       }
     ]);

@@ -40,7 +40,7 @@ class App extends Component<AppProps, AppState> {
 
   async componentDidMount() {
     var properties = await this.airtableLoader.loadPropertiesList();
-    var recipes = await this.airtableLoader.loadRecipesList();
+    var recipes = await this.airtableLoader.loadRecipesList(properties);
     this.setState({propertiesList: properties, isPropertiesLoadedSuccess: properties.length > 0,
                    recipesList: recipes, isRecipesLoadedSuccess: recipes.length > 0 });
     this.setState({isLoading: !(properties.length > 0 && recipes.length > 0) });
