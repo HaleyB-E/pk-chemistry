@@ -1,16 +1,6 @@
 import React, { Component } from "react";
 import { IChemRecipe } from "../helpers/entities";
-
-// a list of all makers marks (and the filename for them)
-export const MakersMarkList = [
-  'auntie',
-  'serelia',
-  'serendipity',
-  'ursula',
-  'melope',
-  'morrigan',
-  'kovatch'
-];
+import { MakersMarkList } from "../helpers/makers-mark-list";
 
 interface IRecipeTableRowProps {
   index: number;
