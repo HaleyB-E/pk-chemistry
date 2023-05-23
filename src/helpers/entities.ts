@@ -3,7 +3,7 @@ export interface IChemRecipe {
   color: string;
   type: string;
   mechanics: string;
-  properties: string[];
+  properties: IChemProperty[];
   makerName?: string;
 }
 

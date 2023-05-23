@@ -120,10 +120,10 @@ export class NewRecipeTab extends Component<NewRecipeTabProps, NewRecipeTabState
       if (propsToCheck.length === recipe.properties.length) {  
         var matches = true;
         // make sure recipe properties are alphabetized
-        recipe.properties.sort((a,b) => a.localeCompare(b))
+        recipe.properties.sort((a,b) => a.name.localeCompare(b.name))
 
         propsToCheck.forEach((prop: IChemProperty, index) => {
-          if ((recipe.properties[index] !== prop.name)) {
+          if ((recipe.properties[index].name !== prop.name)) {
             matches = false;
             return false;
           }

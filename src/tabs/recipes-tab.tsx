@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
+import { RecipeTableRow } from '../components/recipe-table-row';
 import { IChemRecipe } from '../helpers/entities';
-import { generateRecipeTableRow, MakersMarkList } from '../helpers/helpers';
 
 interface RecipesTabProps {
   recipesList: IChemRecipe[];
@@ -37,7 +37,11 @@ export class RecipesTab extends Component<RecipesTabProps> {
   private getRecipeRow = (index: number, recipe: IChemRecipe): JSX.Element => {
     return (
       <tr className='recipe-item' id={`recipes-list-${index}`} key={index}>
-          {generateRecipeTableRow(recipe, false)}
+          <RecipeTableRow
+            index={index}
+            recipe={recipe}
+            includeMakersMarkSelection={false}
+          />
         <td>
           <button
             className='btn action-button add-recipe-to-print' 

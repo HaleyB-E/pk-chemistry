@@ -132,7 +132,7 @@ export class NewRecipeModal extends Component<NewRecipeModalProps, NewRecipeModa
       color: this.getColorFromForm(this.state.form),
       type: this.state.type,
       mechanics: this.state.effect,
-      properties: this.props.selectedProperties.map(p => p.id)
+      properties: this.props.selectedProperties
     }
     this.props.airtableLoader.saveNewRecipe(recipeToSave)
   }

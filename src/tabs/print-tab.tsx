@@ -1,13 +1,24 @@
 import React, { Component } from 'react';
+import { RecipeTableRow } from '../components/recipe-table-row';
 import { IChemRecipe } from '../helpers/entities';
-import { generateRecipeTableRow } from '../helpers/helpers';
-import { PrintToPdfHandler } from '../print-to-pdf/cell-formatter';
+import { PrintToPdfHandler } from '../print-to-pdf/printToPdfHandler';
 
 interface PrintTabProps {
   printQueue: IChemRecipe[];
 }
 
-export class PrintTab extends Component<PrintTabProps> {
+interface PrintTabState {
+  makersMarks: string[];
+}
+
+export class PrintTab extends Component<PrintTabProps, PrintTabState> {
+  constructor(props: PrintTabProps){
+    super(props);
+    this.state = {
+      // fill with empty list the same length as the print queue
+      makersMarks: props.printQueue.map(() => '')
+    }
+  }
   render() {
     const printQueue = this.props.printQueue;
     return (
@@ -30,8 +41,17 @@ export class PrintTab extends Component<PrintTabProps> {
               <table className="table table-striped border">
                 <tbody id="recipes-print-display">
                   {printQueue.map((recipe,index) => 
-                    <tr className='recipe-item' id={`print-recipe-${index}`} key={index}>
-                        {generateRecipeTableRow(recipe, true)}
+                    <tr
+                      className='recipe-item'
+                      id={`print-recipe-${index}`}
+                      key={index}
+                    >
+                      <RecipeTableRow
+                        index={index}
+                        recipe={recipe}
+                        includeMakersMarkSelection={true}
+                        updateMakersMarkCallback={this.setMakersMark}
+                      />
                     </tr>
                   )}
                 </tbody>
@@ -43,18 +63,22 @@ export class PrintTab extends Component<PrintTabProps> {
     );
   }
 
-  private printToPdf = (): void => {
-    PrintToPdfHandler.makePdf(this.props.printQueue);
+  private setMakersMark = (maker: string, index: number): void => {
+    const markListCopy = [...this.state.makersMarks];
+    markListCopy[index] = maker;
+    this.setState({
+      makersMarks: markListCopy
+    });
+  }
 
-    // pdfMake.fonts = printToPdfConfig.fonts;
-    // var docDefinition = {
-    //   pageSize: 'LETTER',
-    //   pageOrientation: 'landscape',
-    //   content: contentArray,
-    //   defaultStyle: printToPdfConfig.defaults,
-    //   styles: printToPdfConfig.styles,
-    //   images: printToPdfConfig.images
-    // };
-    // pdfMake.createPdf(docDefinition).download('test2.pdf')
+  private printToPdf = (): void => {
+    // extract makers marks from mark list
+    const printQueueWithMarks = this.props.printQueue.map((recipe, index) => {
+      return {
+        ...recipe,
+        makerName: this.state.makersMarks[index]
+      }
+    })
+    new PrintToPdfHandler().makePdf(printQueueWithMarks);
   }
 }
