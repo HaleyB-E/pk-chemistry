@@ -51,7 +51,13 @@ class App extends Component<AppProps, AppState> {
   }
 
   public addToPrintQueue = (recipe: IChemRecipe) => {
-    this.setState({printQueue: [...this.state.printQueue, recipe] })
+    this.setState({printQueue: [...this.state.printQueue, recipe] });
+  }
+
+  public removeFromPrintQueue = (index: number) => {
+    const newQueue = [...this.state.printQueue];
+    newQueue.splice(index, 1);
+    this.setState({printQueue: newQueue});
   }
 
   public render() {
@@ -99,6 +105,7 @@ class App extends Component<AppProps, AppState> {
             {this.state.currentTab === 'PrintList' &&
               <PrintTab
                 printQueue={this.state.printQueue}
+                removeItemFromQueue={this.removeFromPrintQueue}
               />
             }
           </div>

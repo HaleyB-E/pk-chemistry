@@ -7,6 +7,7 @@ interface IRecipeTableRowProps {
   recipe: IChemRecipe;
   includeMakersMarkSelection: boolean;
   updateMakersMarkCallback?: (name: string, index: number) => void;
+  makersMark?: string;
 }
 
 export class RecipeTableRow extends Component<IRecipeTableRowProps> {
@@ -22,7 +23,7 @@ export class RecipeTableRow extends Component<IRecipeTableRowProps> {
       <>
         {this.props.includeMakersMarkSelection && (
           <td>
-            <select className='makers-mark-dropdown' onChange={this.updateMark}>
+            <select className='makers-mark-dropdown' value={this.props.makersMark} onChange={this.updateMark}>
               <option value=''>None</option>
               {MakersMarkList.map((markName, index) =>
                 <option key={index} value={markName}>

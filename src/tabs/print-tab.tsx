@@ -5,6 +5,7 @@ import { PrintToPdfHandler } from '../print-to-pdf/printToPdfHandler';
 
 interface PrintTabProps {
   printQueue: IChemRecipe[];
+  removeItemFromQueue: (index: number) => void;
 }
 
 interface PrintTabState {
@@ -46,11 +47,15 @@ export class PrintTab extends Component<PrintTabProps, PrintTabState> {
                       id={`print-recipe-${index}`}
                       key={index}
                     >
+                      <td>
+                        <button className="btn action-button" onClick={() => this.removeItemFromQueue(index)}>Remove</button>
+                      </td>
                       <RecipeTableRow
                         index={index}
                         recipe={recipe}
                         includeMakersMarkSelection={true}
                         updateMakersMarkCallback={this.setMakersMark}
+                        makersMark={this.state.makersMarks[index]}
                       />
                     </tr>
                   )}
@@ -61,6 +66,13 @@ export class PrintTab extends Component<PrintTabProps, PrintTabState> {
         }
       </div>
     );
+  }
+
+  private removeItemFromQueue = (index: number): void => {
+    const markListCopy = [...this.state.makersMarks];
+    markListCopy.splice(index, 1);
+    this.setState({makersMarks: markListCopy});
+    this.props.removeItemFromQueue(index);
   }
 
   private setMakersMark = (maker: string, index: number): void => {
