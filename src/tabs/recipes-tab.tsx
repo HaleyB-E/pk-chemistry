@@ -21,11 +21,18 @@ export class RecipesTab extends Component<RecipesTabProps> {
             No recipes loaded; something might be wrong
           </div>
         }
+        {problemRecipes.length > 0 &&
+          <div>There's a problem!</div>
+        }
         {recipesList.length > 0 &&
           <table className="table table-striped border">
             <tbody id="recipes-list-display">
               {usableRecipes.map((recipe, index) => 
-                this.getRecipeRow(index, recipe)
+                <RecipeRow
+                  key={index}
+                  index={index}
+                  recipe={recipe}
+                  addToPrintQueue={this.props.addToPrintQueue} />
               )}
             </tbody>
           </table>
@@ -33,23 +40,53 @@ export class RecipesTab extends Component<RecipesTabProps> {
       </div>
     );
   }
+}
 
-  private getRecipeRow = (index: number, recipe: IChemRecipe): JSX.Element => {
+export interface IRecipeRowProps {
+  index: number,
+  recipe: IChemRecipe;
+  addToPrintQueue: (recipe: IChemRecipe) => void;
+}
+
+export interface IRecipeRowState {
+  isLoading: boolean;
+}
+
+export class RecipeRow extends Component<IRecipeRowProps, IRecipeRowState> {
+  constructor(props: IRecipeRowProps) {
+    super(props);
+    this.state = {
+      isLoading: false
+    };
+  }
+
+  private addToPrintQueue = () => {
+    this.setState({isLoading: true})
+    setTimeout(() => {
+      this.props.addToPrintQueue(this.props.recipe);
+      this.setState({isLoading: false});
+    }, 100)
+  }
+
+  render() {
+    const {index, recipe} = this.props;
+    const isLoading = this.state.isLoading;
     return (
       <tr className='recipe-item' id={`recipes-list-${index}`} key={index}>
-          <RecipeTableRow
-            index={index}
-            recipe={recipe}
-            includeMakersMarkSelection={false}
-          />
-        <td>
-          <button
-            className='btn action-button add-recipe-to-print' 
-            onClick={() => this.props.addToPrintQueue(recipe)}>
-            Add to Print Queue
-          </button>
-        </td>
-      </tr>
-    );
-  };
-}
+        <RecipeTableRow
+          index={index}
+          recipe={recipe}
+          includeMakersMarkSelection={false}
+        />
+      <td>
+        <button
+          disabled={isLoading}
+          className={`btn action-button add-recipe-to-print`}
+          onClick={this.addToPrintQueue}>
+          Add to Print Queue
+        </button>
+      </td>
+    </tr>
+    )
+  }
+};
